@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"os"
 	"net/http"
 	"regexp"
 	"strconv"
@@ -304,7 +305,16 @@ func httpClient() *http.Client {
 
 func getStatus(path string) (resp *http.Response, err error) {
 	netClient := httpClient()
-	resp, err = netClient.Get(args.StatusURL + path)
+	req, _ := http.NewRequest("GET", args.StatusURL + path, nil)
+	host := os.Getenv("HOST_HEADER")
+	if host != "" {
+		//log.Warn("Adding Host header: %s", host)
+		// https://stackoverflow.com/a/41034588
+		// Pay attention that in http.Request header "Host" can not be set via Set/Add method
+		//req.Header.Add("Host", host)
+		req.Host = host
+	}
+	resp, err = netClient.Do(req)
 	if err != nil {
 		return
 	}
